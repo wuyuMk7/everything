@@ -17,6 +17,8 @@
 #include "tun.h"
 #include "myheader.h"
 
+#define DEBUG 1
+
 #define CLIENT_SIZE 255
 #define SERVER_PORT 12605
 #define BUFFER_SIZE 1024
@@ -66,16 +68,101 @@ int checkpassword(char *username, char *password)
   return 1;
 }
 
+void handleClientTransmission(SSL *ssl, int tunfd, int identifier) {
+  char buffer[BUFFER_SIZE], 
+       username[BUFFER_SIZE], 
+       password[BUFFER_SIZE];
+  int read_len = 0, split_index = 0;
+
+  memset(buffer, '\0', BUFFER_SIZE);
+  memset(username, '\0', BUFFER_SIZE);
+  memset(password, '\0', BUFFER_SIZE);
+  
+  /* SSL tunnel initialization process */
+  /* Accomplish user authentication here. */
+  read_len = SSL_read(ssl, buffer, BUFFER_SIZE - 1);
+#if DEBUG
+  printf("Read %d bytes data from SSL tunnel.\n", read_len);
+#endif
+  /* Extract username and password from the incoming packet. */ 
+  while(split_index < read_len && buffer[split_index] != ' ')
+    ++ split_index;
+  strncpy(username, buffer, split_index);
+  strncpy(password, buffer + split_index, read_len - split_index);
+#if DEBUG
+  printf("Incomming user authentication credential: \n"
+	"username - %s, password - %s\n", username, password + 1);
+#endif
+  if (checkpassword(username, password + 1) == 1) {
+    printf("User authentication succeeded.");
+  
+    /* Send IP back to the client */
+    char ip[1024] = {'\0'};
+    sprintf(ip, "192.168.53.%d", identifier);
+    SSL_write(ssl, ip, strlen(ip));
+
+    /* Input interfaces monitor */
+    while(1) {
+      fd_set readFDSet;
+
+      FD_ZERO(&readFDSet);
+      FD_SET(client_fds[identifier][0], &readFDSet);
+      FD_SET(client_socks[identifier], &readFDSet);
+      select(FD_SETSIZE, &readFDSet, NULL, NULL, NULL);
+
+#if DEBUG
+      printf("Waiting for data\n");
+#endif
+
+      if (FD_ISSET(client_fds[identifier][0], &readFDSet)) {
+        read_len = read(client_fds[identifier][0], buffer, BUFFER_SIZE);
+#if DEBUG
+	printf("Got a packet from Main Process. Packet length %d bytes\n", read_len);	
+#endif
+	SSL_write(ssl, buffer, read_len);
+      }
+
+      if (FD_ISSET(client_socks[identifier], &readFDSet)) {
+        read_len = SSL_read(ssl, buffer, BUFFER_SIZE - 1);
+        if (read_len > 0) {
+          buffer[read_len] = '\0';
+#if DEBUG
+          printf("Got a packet from Client Socket. Packet length %d bytes\n", read_len);	
+#endif
+          write(tunfd, buffer, read_len);
+        } else if (read_len == 0) {
+#if DEBUG
+          printf("SSL socket disconnected.\n");
+#endif
+          break;
+        } else {
+#if DEBUG
+          perror("SSL read error");
+#endif
+          break;
+        }
+      }
+    }
+  } else {
+    /* Print authentication failed/ with pid/ ip */
+    printf("User authentication failed.");
+    SSL_write(ssl, "failed", 6);
+  }
+
+  return;
+} 
+
+
 int main(int argc, char* argv[])
 {
   int tunfd, send_tunfd, server_sock, err;
   struct sockaddr_in client_addr;
-  size_t client_len;
+  size_t client_len = 0;
 
   SSL_METHOD *meth;
   SSL_CTX *ctx;
-  //SSL *ssl;
 
+  /* SSL library initialization */
   SSL_library_init();
   SSL_load_error_strings();
   SSLeay_add_ssl_algorithms();
@@ -87,6 +174,7 @@ int main(int argc, char* argv[])
   SSL_CTX_use_PrivateKey_file(ctx, "./server_cert/vpnlabserver-hekey.pem", SSL_FILETYPE_PEM);
   //ssl = SSL_new(ctx);
 
+  /* Client socks and pipes initialization */
   for (int i = 0;i < CLIENT_SIZE; ++i) {
     client_socks[i] = -1;
     pipe(client_fds[i]);
@@ -95,143 +183,83 @@ int main(int argc, char* argv[])
   client_socks[1] = server_sock;
   //client_socks[2] = server_sock;
 
+  /* Create tun device and listen socket */
   tunfd = createTunDevice("192.168.53.1", "255.255.255.0", 0);
   //send_tunfd = createTunDevice("192.168.54.2", "255.255.255.0", 0);
   server_sock = setupTCPServer();
-  //////////////////////////////////
-      printf("Main process\n");
-      struct ipheader *iph;
-      char main_recv_buffer[BUFFER_SIZE];
-      int main_recv_buffer_len = 0;
-      while (1) {
-	fd_set readFDSet;
 
-        FD_ZERO(&readFDSet);
-	FD_SET(server_sock, &readFDSet);
-        FD_SET(tunfd, &readFDSet);
-  	select(FD_SETSIZE, &readFDSet, NULL, NULL, NULL);
+  /* Process transmission between client and server */
+  struct ipheader *iph;
+  char main_recv_buffer[BUFFER_SIZE];
+  int main_recv_buffer_len = 0;
+  while (1) {
+    fd_set readFDSet;
 
- 	if (FD_ISSET(tunfd, &readFDSet)) {
-	  printf("Got a packet from TUN\n");	
-	  int main_recv_buffer_len = read(tunfd, main_recv_buffer, BUFFER_SIZE);
-	  printf("TUN:%d %s\n", main_recv_buffer_len, main_recv_buffer);
-	  iph = (struct ipheader*)(main_recv_buffer);
-	  //unsigned char *source_addr = (unsigned char*)&(iph->iph_sourceip.s_addr);
-	  unsigned char *dest_addr = (unsigned char*)&(iph->iph_destip.s_addr);
-	  /*
-	  printf("Source IP: %d.%d.%d.%d\n", source_addr[0], source_addr[1], source_addr[2], source_addr[3]);
-	  printf("Dest IP: %d\n", dest_addr[3]);
-	  */
-	  write(client_fds[dest_addr[3]][1], main_recv_buffer, main_recv_buffer_len);
-	}
+    FD_ZERO(&readFDSet);
+    FD_SET(server_sock, &readFDSet);
+    FD_SET(tunfd, &readFDSet);
+    select(FD_SETSIZE, &readFDSet, NULL, NULL, NULL);
 
-        if (FD_ISSET(server_sock, &readFDSet)) {
-    int client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &client_len);
-    int cur = 0;
-    for (; cur < CLIENT_SIZE && client_socks[cur] != -1;++cur) ;
-    if (cur >= CLIENT_SIZE) {
-      close(client_sock);
-      continue;
+    if (FD_ISSET(tunfd, &readFDSet)) {
+      printf("Got a packet from TUN device.\n");	
+      int main_recv_buffer_len = read(tunfd, main_recv_buffer, BUFFER_SIZE);
+      printf("TUN:%d %s\n", main_recv_buffer_len, main_recv_buffer);
+      iph = (struct ipheader*)(main_recv_buffer);
+      //unsigned char *source_addr = (unsigned char*)&(iph->iph_sourceip.s_addr);
+      unsigned char *dest_addr = (unsigned char*)&(iph->iph_destip.s_addr);
+      /*
+      printf("Source IP: %d.%d.%d.%d\n", source_addr[0], source_addr[1], source_addr[2], source_addr[3]);
+      printf("Dest IP: %d\n", dest_addr[3]);
+      */
+      write(client_fds[dest_addr[3]][1], main_recv_buffer, main_recv_buffer_len);
     }
-    client_socks[cur] = client_sock;
-    printf("Comming connection.");
+  
+    if (FD_ISSET(server_sock, &readFDSet)) {
+      int client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &client_len);
+      if (client_sock < 0) {
+#if DEBUG
+	perror("Accept client sock error");
+#endif
+	continue;
+      }
 
-    if (fork() == 0) {
-      close(server_sock);
-      close(client_fds[cur][1]);
+      int cur = 0;
+      for (; cur < CLIENT_SIZE && client_socks[cur] != -1;++cur) ;
+      if (cur >= CLIENT_SIZE) {
+        close(client_sock);
+        continue;
+      }
+      client_socks[cur] = client_sock;
 
-      SSL *ssl = SSL_new(ctx);
-      SSL_set_fd(ssl, client_sock);
-      if ((err = SSL_accept(ssl)) < 1) {
-	ERR_print_errors_fp(stderr);
-	//perror("SSL accept error");
+      if (fork() == 0) {
+        close(server_sock);
+        close(client_fds[cur][1]);
+
+        SSL *ssl = SSL_new(ctx);
+        SSL_set_fd(ssl, client_sock);
+        if ((err = SSL_accept(ssl)) < 1) {
+	  ERR_print_errors_fp(stderr);
+          client_socks[cur] = -1;
+	  exit(2);
+        }
+#if DEBUG
+        printf("SSL connection established!\n");
+#endif
+ 
+        /* VPN packets process */
+        handleClientTransmission(ssl, tunfd, cur);
+
+	// TODO: send a signal to parent and reset the globals
+	// PIPE!
         client_socks[cur] = -1;
-	exit(2);
-      }
-
-      printf("SSL connection established!\n");
-
-      char buffer[BUFFER_SIZE], username[BUFFER_SIZE], password[BUFFER_SIZE];
-      int read_len = 0, split_index = 0;
-      memset(buffer, '\0', BUFFER_SIZE);
-      memset(username, '\0', BUFFER_SIZE);
-      memset(password, '\0', BUFFER_SIZE);
-      
-      read_len = SSL_read(ssl, buffer, BUFFER_SIZE - 1);
-      printf("Received: %s\n", buffer);
-      while(split_index < read_len && buffer[split_index] != ' ')
-        ++ split_index;
-      strncpy(username, buffer, split_index);
-      strncpy(password, buffer + split_index, read_len - split_index);
-      printf("username: %s\n", username);
-      printf("password: %s\n", password + 1);
-      if (checkpassword(username, password + 1) == 1) {
-	printf("User authentication succeeded.");
-
-	char ip[1024] = {'\0'};
-        sprintf(ip, "192.168.53.%d", cur);
-	SSL_write(ssl, ip, strlen(ip));
-
-	// SSL VPN starts from this part.
-	while(1) {
-      	  fd_set readFDSet;
-
-	  FD_ZERO(&readFDSet);
-          //FD_SET(tunfd, &readFDSet);
-	  FD_SET(client_fds[cur][0], &readFDSet);
-	  FD_SET(client_sock, &readFDSet);
-	  select(FD_SETSIZE, &readFDSet, NULL, NULL, NULL);
-
-	  printf("waiting for data\n");
-
-	/*
- 	if (FD_ISSET(tunfd, &readFDSet)) {
-	  printf("Got a packet from TUN\n");	
-	  int main_recv_buffer_len = read(tunfd, buffer, BUFFER_SIZE);
-	  printf("TUN:%d %s\n", main_recv_buffer_len, buffer);
-	  SSL_write(ssl, buffer, main_recv_buffer_len);
-	}
-        */
- 	  if (FD_ISSET(client_fds[cur][0], &readFDSet)) {
-	    printf("Got a packet from Main Process\n");	
-	    read_len = read(client_fds[cur][0], buffer, BUFFER_SIZE);
-	    printf("FDREAD:%d %s\n", read_len, buffer);
-	    SSL_write(ssl, buffer, read_len);
-	  }
-
-	  if (FD_ISSET(client_sock, &readFDSet)) {
-	  //do {
-      	    read_len = SSL_read(ssl, buffer, BUFFER_SIZE - 1);
-	    buffer[read_len] = '\0';
-	    printf("%d %s\n", read_len, buffer);
-	  //} while(read_len > 0);
-	    // TODO: Add a lock here or send after having got entire packet
-	    write(tunfd, buffer, read_len);
-	  }
-	  //SSL_write(ssl, "hello", 5);
-	  //printf("yo\n");
-	}
+        close(client_sock);
+        SSL_shutdown(ssl);
+        SSL_free(ssl);
+        return 0;
       } else {
-	// Print authentication failed/ with pid/ ip
- 	printf("User authentication failed.");
-	SSL_write(ssl, "failed", 6);
+        close(client_sock);
       }
-
-      client_socks[cur] = -1;
-      SSL_shutdown(ssl);
-      SSL_free(ssl);
-      close(client_sock);
-      return 0;
-    } 
-
- 	}
-      }
-
-
-  ///////////////////////////////////
-
-  //while(1) {
-  //}
-
+    }
+  }
   return 0;
 }
