@@ -172,7 +172,6 @@ int main(int argc, char* argv[])
   SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
   SSL_CTX_use_certificate_file(ctx, "./server_cert/vpnlabserver-hecrt.pem", SSL_FILETYPE_PEM);
   SSL_CTX_use_PrivateKey_file(ctx, "./server_cert/vpnlabserver-hekey.pem", SSL_FILETYPE_PEM);
-  //ssl = SSL_new(ctx);
 
   /* Client socks and pipes initialization */
   for (int i = 0;i < CLIENT_SIZE; ++i) {
@@ -181,11 +180,9 @@ int main(int argc, char* argv[])
   }
   client_socks[0] = server_sock;
   client_socks[1] = server_sock;
-  //client_socks[2] = server_sock;
 
   /* Create tun device and listen socket */
   tunfd = createTunDevice("192.168.53.1", "255.255.255.0", 0);
-  //send_tunfd = createTunDevice("192.168.54.2", "255.255.255.0", 0);
   server_sock = setupTCPServer();
 
   /* Process transmission between client and server */
@@ -196,14 +193,26 @@ int main(int argc, char* argv[])
     fd_set readFDSet;
 
     FD_ZERO(&readFDSet);
+    FD_SET(client_fds[0][0], &readFDSet);
     FD_SET(server_sock, &readFDSet);
     FD_SET(tunfd, &readFDSet);
     select(FD_SETSIZE, &readFDSet, NULL, NULL, NULL);
 
+    if (FD_ISSET(client_fds[0][0], &readFDSet)) {
+        main_recv_buffer_len = read(client_fds[0][0], main_recv_buffer, BUFFER_SIZE);
+        int client_identifier = atoi(main_recv_buffer);
+        if (client_identifier < 1 || client_identifier > 255) continue;
+#if DEBUG
+	printf("Got termination signal from client %d\n", client_identifier);	
+#endif
+        client_socks[client_identifier] = -1; 
+    }
+
     if (FD_ISSET(tunfd, &readFDSet)) {
-      printf("Got a packet from TUN device.\n");	
-      int main_recv_buffer_len = read(tunfd, main_recv_buffer, BUFFER_SIZE);
-      printf("TUN:%d %s\n", main_recv_buffer_len, main_recv_buffer);
+      main_recv_buffer_len = read(tunfd, main_recv_buffer, BUFFER_SIZE);
+      //printf("Got a packet from TUN device.\n");	
+      //printf("TUN:%d %s\n", main_recv_buffer_len, main_recv_buffer);
+      printf("Read %d bytes data from TUN device.\n", main_recv_buffer_len);
       iph = (struct ipheader*)(main_recv_buffer);
       //unsigned char *source_addr = (unsigned char*)&(iph->iph_sourceip.s_addr);
       unsigned char *dest_addr = (unsigned char*)&(iph->iph_destip.s_addr);
@@ -249,8 +258,11 @@ int main(int argc, char* argv[])
         /* VPN packets process */
         handleClientTransmission(ssl, tunfd, cur);
 
-	// TODO: send a signal to parent and reset the globals
-	// PIPE!
+        /* Notify the server to unlink this socket */
+        char str_client_identifier[8] = {'\0'};
+        sprintf(str_client_identifier, "%d", cur);
+        write(client_fds[0][1], str_client_identifier, strlen(str_client_identifier));
+
         client_socks[cur] = -1;
         close(client_sock);
         SSL_shutdown(ssl);
