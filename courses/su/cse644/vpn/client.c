@@ -122,9 +122,17 @@ int main(int argc, char* argv[])
     
       if (FD_ISSET(sockfd, &readFDSet)) {
         read_len = SSL_read(ssl, recv_buffer, BUFFER_SIZE - 1);
-        recv_buffer[read_len] = '\0';
-        write(tunfd, recv_buffer, read_len);
-        printf("vpn %d\n", read_len);
+	if (read_len > 0) {
+          recv_buffer[read_len] = '\0';
+          write(tunfd, recv_buffer, read_len);
+          printf("vpn %d\n", read_len);
+	} else if (read_len == 0) {
+	  printf("Server disconnected.\n");
+          break;
+	} else {
+          printf("SSL read error. Program terminated.\n");
+          break;
+        }
       }
     }
   }
