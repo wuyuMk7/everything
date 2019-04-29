@@ -8,6 +8,7 @@
 
 #define BUFFER_SIZE 1024
 #define CA_DIR "cert_client"
+#define CLIENT_CONFIG "client_config"
 
 char* extern_target_net = "192.168.60.0";
 char* extern_target_mask = "255.255.255.0";
@@ -71,9 +72,27 @@ SSL* setupTLSClient(const char *hostname)
 
 int main(int argc, char* argv[])
 {
-  int port = 12605;
-  char *hostname = "vpnlabserver-he.com";
-  char *username = "seed", *password = "dees";
+  int port = 4443;
+  char hostname[1024] = {'\0'}, username[1024] = {'\0'}, password[1024] = {'\0'};
+
+  char config_key[1024], config_value[1024];
+  FILE *fp;
+  fp = fopen(CLIENT_CONFIG, "r");
+
+  strncpy(hostname, "vpnlabserver.com", 16);
+  strncpy(username, "test", 4);
+  strncpy(password, "test", 4);
+  while(fscanf(fp, "%s %s\n", config_key, config_value) == 2) {
+    if (strncmp(config_key, "server", 6) == 0) {
+      strcpy(hostname, config_value);
+    } else if (strncmp(config_key, "port", 4) == 0) {
+      port = atoi(config_value);
+    } else if (strncmp(config_key, "user", 4) == 0) {
+      strcpy(username, config_value);
+    } else if (strncmp(config_key, "pwd", 3) == 0) {
+      strcpy(password, config_value);
+    }
+  }
 
   SSL *ssl = setupTLSClient(hostname);
   int tunfd, sockfd = setupTCPClient(hostname, port);
