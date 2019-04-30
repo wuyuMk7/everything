@@ -186,6 +186,8 @@ int main(int argc, char* argv[])
   struct ipheader *iph;
   char main_recv_buffer[BUFFER_SIZE];
   int main_recv_buffer_len = 0;
+
+  /* Use select to monitor file descriptors */
   while (1) {
     fd_set readFDSet;
 

@@ -75,10 +75,12 @@ int main(int argc, char* argv[])
   int port = 4443;
   char hostname[1024] = {'\0'}, username[1024] = {'\0'}, password[1024] = {'\0'};
 
+  /* Load client configuration from CLIENT_CONFIG */
   char config_key[1024], config_value[1024];
   FILE *fp;
   fp = fopen(CLIENT_CONFIG, "r");
 
+  /* Set parameters' default values */
   strncpy(hostname, "vpnlabserver.com", 16);
   strncpy(username, "test", 4);
   strncpy(password, "test", 4);
@@ -94,6 +96,7 @@ int main(int argc, char* argv[])
     }
   }
 
+  /* Set TLS client and TCP client */
   SSL *ssl = setupTLSClient(hostname);
   int tunfd, sockfd = setupTCPClient(hostname, port);
 
@@ -110,18 +113,22 @@ int main(int argc, char* argv[])
   char recv_buffer[BUFFER_SIZE] = {'\0'}, send_buffer[BUFFER_SIZE] = {'\0'};
   char local_tun_ip[BUFFER_SIZE] = {'\0'};
 
-  // Send username and password, then receive IP address
+  /* Send username and password to server */
   sprintf(send_buffer, "%s %s", username, password);
   SSL_write(ssl, send_buffer, strlen(send_buffer));
   read_len = SSL_read(ssl, recv_buffer, BUFFER_SIZE - 1); 
-  printf("Received an IP from the VPN server: %s\n", recv_buffer);
+  printf("Received IP address from the VPN server: %s\n", recv_buffer);
+
   if (read_len == 6 && strncmp(recv_buffer, "failed", 6) == 0) {
     close(sockfd);
     printf("Authentication failed. VPN connection terminated.\n");
     exit(0);
   } else {
+    /* Create tun device and set route table */
     strncpy(local_tun_ip, recv_buffer, read_len);
     tunfd = createTunDevice(local_tun_ip, "255.255.255.0", 1);
+
+    /* Use select to monitor file descriptors */
     while(1) {
       fd_set readFDSet;
 
@@ -131,10 +138,8 @@ int main(int argc, char* argv[])
       select(FD_SETSIZE, &readFDSet, NULL, NULL, NULL);
 
       if (FD_ISSET(tunfd, &readFDSet)) {
-	printf("Got a packet from tun\n");
-        printf("tunbe %d %s\n", read_len, send_buffer);
         read_len = read(tunfd, send_buffer, BUFFER_SIZE - 1);
-        printf("tun %d %s\n", read_len, send_buffer);
+        printf("Read %d bytes data from tun device.\n", read_len);
         send_buffer[read_len] = '\0';
         SSL_write(ssl, send_buffer, read_len);
       }
@@ -144,7 +149,7 @@ int main(int argc, char* argv[])
 	if (read_len > 0) {
           recv_buffer[read_len] = '\0';
           write(tunfd, recv_buffer, read_len);
-          printf("vpn %d\n", read_len);
+          printf("Read %d bytes data from socket.\n", read_len);
 	} else if (read_len == 0) {
 	  printf("Server disconnected.\n");
           break;
