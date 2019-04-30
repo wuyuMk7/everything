@@ -18,6 +18,11 @@ int setupTCPClient(const char *host, int port)
   struct sockaddr_in server_addr;
   struct hostent *hp = gethostbyname(host);
   int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+  if (hp == NULL) {
+    printf("Cannot retrieve IP address using the hostname %s\n", host);
+    exit(0);
+  }
   
   memset(&server_addr, '\0', sizeof(server_addr));
   memcpy(&(server_addr.sin_addr.s_addr), hp->h_addr, hp->h_length);
