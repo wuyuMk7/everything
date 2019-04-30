@@ -79,10 +79,9 @@ void handleClientTransmission(SSL *ssl, int tunfd, int identifier) {
   memset(password, '\0', BUFFER_SIZE);
   
   /* SSL tunnel initialization process */
-  /* Accomplish user authentication here. */
   read_len = SSL_read(ssl, buffer, BUFFER_SIZE - 1);
 #if DEBUG
-  printf("Read %d bytes data from SSL tunnel.\n", read_len);
+  printf("Server(child): read %d bytes data from SSL tunnel. Client: %d.\n", read_len, identifier);
 #endif
   /* Extract username and password from the incoming packet. */ 
   while(split_index < read_len && buffer[split_index] != ' ')
@@ -90,11 +89,11 @@ void handleClientTransmission(SSL *ssl, int tunfd, int identifier) {
   strncpy(username, buffer, split_index);
   strncpy(password, buffer + split_index, read_len - split_index);
 #if DEBUG
-  printf("Incomming user authentication credential: \n"
+  printf("Server(child): incomming user authentication credential: \n"
 	"username - %s, password - %s\n", username, password + 1);
 #endif
   if (checkpassword(username, password + 1) == 1) {
-    printf("User authentication succeeded.");
+    printf("Server(child): user authentication succeeded. Client: %d, username: %s\n", identifier, username);
   
     /* Send IP back to the client */
     char ip[1024] = {'\0'};
@@ -111,13 +110,13 @@ void handleClientTransmission(SSL *ssl, int tunfd, int identifier) {
       select(FD_SETSIZE, &readFDSet, NULL, NULL, NULL);
 
 #if DEBUG
-      printf("Waiting for data\n");
+      printf("Server(child): waiting for data\n");
 #endif
 
       if (FD_ISSET(client_fds[identifier][0], &readFDSet)) {
         read_len = read(client_fds[identifier][0], buffer, BUFFER_SIZE);
 #if DEBUG
-	printf("Got a packet from Main Process. Packet length %d bytes\n", read_len);	
+	printf("Server(child): got a packet from Main Process. Client: %d. Packet length %d bytes. \n", identifier, read_len);	
 #endif
 	SSL_write(ssl, buffer, read_len);
       }
@@ -127,25 +126,23 @@ void handleClientTransmission(SSL *ssl, int tunfd, int identifier) {
         if (read_len > 0) {
           buffer[read_len] = '\0';
 #if DEBUG
-          printf("Got a packet from Client Socket. Packet length %d bytes\n", read_len);	
+          printf("Server(child): got a packet from Client Socket. Client: %d. Packet length %d bytes\n", identifier, read_len);	
 #endif
           write(tunfd, buffer, read_len);
         } else if (read_len == 0) {
 #if DEBUG
-          printf("SSL socket disconnected.\n");
+          printf("Server(child): SSL socket disconnected. Client %d.\n", identifier);
 #endif
           break;
         } else {
-#if DEBUG
-          perror("SSL read error");
-#endif
+          perror("Server(child): SSL read error. \n");
           break;
         }
       }
     }
   } else {
     /* Print authentication failed/ with pid/ ip */
-    printf("User authentication failed.");
+    printf("Server(child): user authentication failed. Client: %d, username: %s\n", identifier, username);
     SSL_write(ssl, "failed", 6);
   }
 
@@ -202,33 +199,33 @@ int main(int argc, char* argv[])
         main_recv_buffer_len = read(client_fds[0][0], main_recv_buffer, BUFFER_SIZE);
         int client_identifier = atoi(main_recv_buffer);
         if (client_identifier < 1 || client_identifier > 255) continue;
-#if DEBUG
-	printf("Got termination signal from client %d\n", client_identifier);	
-#endif
+	printf("Server: got termination signal from client %d. Client disconnected.\n", client_identifier);	
         client_socks[client_identifier] = -1; 
     }
 
     if (FD_ISSET(tunfd, &readFDSet)) {
       main_recv_buffer_len = read(tunfd, main_recv_buffer, BUFFER_SIZE);
-      //printf("Got a packet from TUN device.\n");	
-      //printf("TUN:%d %s\n", main_recv_buffer_len, main_recv_buffer);
-      printf("Read %d bytes data from TUN device.\n", main_recv_buffer_len);
       iph = (struct ipheader*)(main_recv_buffer);
-      //unsigned char *source_addr = (unsigned char*)&(iph->iph_sourceip.s_addr);
+      unsigned char *source_addr = (unsigned char*)&(iph->iph_sourceip.s_addr);
       unsigned char *dest_addr = (unsigned char*)&(iph->iph_destip.s_addr);
-      /*
-      printf("Source IP: %d.%d.%d.%d\n", source_addr[0], source_addr[1], source_addr[2], source_addr[3]);
-      printf("Dest IP: %d\n", dest_addr[3]);
-      */
+
+#if DEBUG
+      printf("Server: read %d bytes data from TUN device. " 
+             "Packet from %d.%d.%d.%d to %d.%d.%d.%d\n", 
+             main_recv_buffer_len, 
+             source_addr[0], source_addr[1], source_addr[2], source_addr[3], 
+             dest_addr[0], dest_addr[1], dest_addr[2], dest_addr[3]);
+#else
+      printf("Server: read %d bytes data from TUN device.\n", main_recv_buffer_len);
+#endif
+
       write(client_fds[dest_addr[3]][1], main_recv_buffer, main_recv_buffer_len);
     }
   
     if (FD_ISSET(server_sock, &readFDSet)) {
       int client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &client_len);
       if (client_sock < 0) {
-#if DEBUG
-	perror("Accept client sock error");
-#endif
+	perror("Server: accept client sock error");
 	continue;
       }
 
@@ -252,7 +249,7 @@ int main(int argc, char* argv[])
 	  exit(2);
         }
 #if DEBUG
-        printf("SSL connection established!\n");
+        printf("Server(child): SSL connection established! Client: %d.\n", cur);
 #endif
  
         /* VPN packets process */
