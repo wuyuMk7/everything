@@ -1,0 +1,72 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 4097 (0x1001)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=US, ST=NY, L=Syracuse, O=CSE644VPN_YangHe, OU=VPN_CA_YangHe, CN=vpnlabca-he.com/emailAddress=yanghe
+        Validity
+            Not Before: May  1 14:16:35 2019 GMT
+            Not After : Apr 30 14:16:35 2020 GMT
+        Subject: C=US, ST=NY, L=Syracuse, O=CSE644VPN_YangHe, OU=VPN_SERVER_FAKE, CN=vpnlabserver-fake.com/emailAddress=fake@fake
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (1024 bit)
+                Modulus:
+                    00:b9:d1:aa:a3:5f:22:3d:17:a6:01:d2:f2:e3:78:
+                    da:09:95:63:a3:c2:9f:7c:04:32:88:01:4b:ae:20:
+                    b2:58:b6:95:f9:6d:d2:05:91:a6:98:d5:3e:05:bb:
+                    ae:62:3f:ee:28:f5:f2:fe:ba:db:9b:31:b9:67:46:
+                    89:b6:6e:5d:f3:92:75:dc:a0:98:fb:1c:23:cf:5b:
+                    83:1f:9e:a3:28:1f:48:6f:05:1d:6c:2a:9f:07:21:
+                    37:ad:28:ea:f8:d9:33:c6:3d:66:48:bb:51:6e:ee:
+                    c3:3d:96:c7:d9:67:f8:6c:05:8f:ea:16:50:39:4b:
+                    73:26:f1:31:b1:d7:ec:2f:99
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                OpenSSL Generated Certificate
+            X509v3 Subject Key Identifier: 
+                EF:16:85:92:0E:67:58:E7:2E:E7:BE:B2:1A:39:8C:B8:F9:7C:9C:2B
+            X509v3 Authority Key Identifier: 
+                keyid:A5:52:DB:BB:BE:44:2B:00:1D:0B:F6:36:4C:15:4E:A7:84:C5:61:0A
+
+    Signature Algorithm: sha256WithRSAEncryption
+         18:73:29:c1:e7:73:b3:f2:96:a7:3b:7a:a7:cb:f5:5e:8c:59:
+         ed:4a:ff:29:25:9b:c4:41:33:95:b8:33:4b:71:62:06:29:9c:
+         a4:fa:4d:ef:71:e5:ec:ff:ce:5f:ef:d8:b7:32:da:f5:59:e3:
+         a1:78:4b:6e:18:e7:5b:6f:cf:3f:c5:a4:ce:f4:60:9d:c4:3a:
+         34:3b:c1:ba:b5:d2:ed:e6:40:b3:87:91:5b:c3:93:0a:ea:84:
+         86:bb:a5:a4:06:7a:91:84:47:e9:b4:05:29:4d:cd:6e:11:1f:
+         d6:f5:a0:3a:f4:79:43:cd:1f:cc:28:d6:d0:ca:59:8a:9b:ca:
+         8c:e0:f2:d1:fa:90:c4:6f:d2:c2:d1:a0:08:07:ea:cd:86:d7:
+         7b:0c:a5:72:90:3b:9b:ba:79:f5:4f:21:5f:6e:a0:3b:09:50:
+         78:78:a5:92:e7:5d:01:89:95:5e:09:74:fa:cb:7d:bd:c4:9d:
+         8f:0c:40:59:3e:aa:a0:0b:67:11:b2:7a:0c:c7:60:70:7a:ba:
+         78:63:2e:b2:0c:12:f7:ab:ba:c3:f8:31:57:28:7c:53:5f:83:
+         83:73:20:83:a9:60:60:e5:92:2a:2d:c7:07:ba:20:41:9c:0b:
+         ab:dc:22:8e:ac:75:3e:ba:2c:94:a2:0d:96:02:e4:61:a1:6a:
+         a0:2a:6a:3b
+-----BEGIN CERTIFICATE-----
+MIIDojCCAoqgAwIBAgICEAEwDQYJKoZIhvcNAQELBQAwgZExCzAJBgNVBAYTAlVT
+MQswCQYDVQQIDAJOWTERMA8GA1UEBwwIU3lyYWN1c2UxGTAXBgNVBAoMEENTRTY0
+NFZQTl9ZYW5nSGUxFjAUBgNVBAsMDVZQTl9DQV9ZYW5nSGUxGDAWBgNVBAMMD3Zw
+bmxhYmNhLWhlLmNvbTEVMBMGCSqGSIb3DQEJARYGeWFuZ2hlMB4XDTE5MDUwMTE0
+MTYzNVoXDTIwMDQzMDE0MTYzNVowgZwxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJO
+WTERMA8GA1UEBwwIU3lyYWN1c2UxGTAXBgNVBAoMEENTRTY0NFZQTl9ZYW5nSGUx
+GDAWBgNVBAsMD1ZQTl9TRVJWRVJfRkFLRTEeMBwGA1UEAwwVdnBubGFic2VydmVy
+LWZha2UuY29tMRgwFgYJKoZIhvcNAQkBFglmYWtlQGZha2UwgZ8wDQYJKoZIhvcN
+AQEBBQADgY0AMIGJAoGBALnRqqNfIj0XpgHS8uN42gmVY6PCn3wEMogBS64gsli2
+lflt0gWRppjVPgW7rmI/7ij18v6625sxuWdGibZuXfOSddygmPscI89bgx+eoygf
+SG8FHWwqnwchN60o6vjZM8Y9Zki7UW7uwz2Wx9ln+GwFj+oWUDlLcybxMbHX7C+Z
+AgMBAAGjezB5MAkGA1UdEwQCMAAwLAYJYIZIAYb4QgENBB8WHU9wZW5TU0wgR2Vu
+ZXJhdGVkIENlcnRpZmljYXRlMB0GA1UdDgQWBBTvFoWSDmdY5y7nvrIaOYy4+Xyc
+KzAfBgNVHSMEGDAWgBSlUtu7vkQrAB0L9jZMFU6nhMVhCjANBgkqhkiG9w0BAQsF
+AAOCAQEAGHMpwedzs/KWpzt6p8v1XoxZ7Ur/KSWbxEEzlbgzS3FiBimcpPpN73Hl
+7P/OX+/YtzLa9VnjoXhLbhjnW2/PP8WkzvRgncQ6NDvBurXS7eZAs4eRW8OTCuqE
+hrulpAZ6kYRH6bQFKU3NbhEf1vWgOvR5Q80fzCjW0MpZipvKjODy0fqQxG/SwtGg
+CAfqzYbXewylcpA7m7p59U8hX26gOwlQeHilkuddAYmVXgl0+st9vcSdjwxAWT6q
+oAtnEbJ6DMdgcHq6eGMusgwS96u6w/gxVyh8U1+Dg3Mgg6lgYOWSKi3HB7ogQZwL
+q9wijqx1ProslKINlgLkYaFqoCpqOw==
+-----END CERTIFICATE-----
