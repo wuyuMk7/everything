@@ -13,4 +13,4 @@ tun.o: tun.c tun.h
 	gcc -o tun.o -c tun.c
 
 clean:
-	rm -rf *.o server client
+	rm -rf *.o server client single_server
