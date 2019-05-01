@@ -24,6 +24,8 @@
 #define SERVER_PORT 12605
 #define BUFFER_SIZE 1024
 
+#define SERVER_CONFIG "server_config"
+
 int client_socks[CLIENT_SIZE];
 int client_fds[CLIENT_SIZE][2];
 
@@ -157,6 +159,24 @@ int main(int argc, char* argv[])
   struct sockaddr_in client_addr;
   size_t client_len = 0;
 
+  char certpath[1024] = {'\0'}, keypath[1024] = {'\0'};
+
+  /* Load server configuration from SERVER_CONFIG */
+  char config_key[1024], config_value[1024];
+  FILE *fp;
+  fp = fopen(SERVER_CONFIG, "r");
+
+  /* Set parameters' default values */
+  strncpy(certpath, "./server_cert/vpnlabserver-crt.pem", 34);
+  strncpy(keypath, "./server_cert/vpnlabserver-key.pem", 34);
+  while(fscanf(fp, "%s %s\n", config_key, config_value) == 2) {
+    if (strncmp(config_key, "cert", 4) == 0) {
+      strcpy(certpath, config_value);
+    } else if (strncmp(config_key, "key", 3) == 0) {
+      strcpy(keypath, config_value);
+    }
+  }
+
   SSL_METHOD *meth;
   SSL_CTX *ctx;
 
@@ -168,8 +188,8 @@ int main(int argc, char* argv[])
   meth = (SSL_METHOD *)TLSv1_2_method();
   ctx = SSL_CTX_new(meth);
   SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
-  SSL_CTX_use_certificate_file(ctx, "./server_cert/vpnlabserver-hecrt.pem", SSL_FILETYPE_PEM);
-  SSL_CTX_use_PrivateKey_file(ctx, "./server_cert/vpnlabserver-hekey.pem", SSL_FILETYPE_PEM);
+  SSL_CTX_use_certificate_file(ctx, certpath, SSL_FILETYPE_PEM);
+  SSL_CTX_use_PrivateKey_file(ctx, keypath, SSL_FILETYPE_PEM);
 
   /* Client socks and pipes initialization */
   for (int i = 0;i < CLIENT_SIZE; ++i) {

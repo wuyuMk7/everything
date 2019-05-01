@@ -1,0 +1,4 @@
+cert	./server_cert/vpnlabserver-hecrt.pem
+key	./server_cert/vpnlabserver-hekey.pem
+#cert	./server_cert/fakecrt.pem
+#key	./server_cert/fakekey.pem
