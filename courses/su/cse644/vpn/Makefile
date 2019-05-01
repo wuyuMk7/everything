@@ -1,4 +1,7 @@
-all: server client
+all: single_server server client
+
+single_server: single_server.c tun.o
+	gcc -o single_server single_server.c tun.o -lssl -lcrypto -lcrypt
 
 server: server.c tun.o
 	gcc -o server server.c tun.o -lssl -lcrypto -lcrypt

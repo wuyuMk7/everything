@@ -19,7 +19,8 @@
 
 #define DEBUG 1
 
-#define CLIENT_SIZE 255
+//#define CLIENT_SIZE 255
+#define CLIENT_SIZE 3
 #define SERVER_PORT 12605
 #define BUFFER_SIZE 1024
 
@@ -221,7 +222,8 @@ int main(int argc, char* argv[])
       printf("Server: read %d bytes data from TUN device.\n", main_recv_buffer_len);
 #endif
 
-      write(client_fds[dest_addr[3]][1], main_recv_buffer, main_recv_buffer_len);
+      //write(client_fds[dest_addr[3]][1], main_recv_buffer, main_recv_buffer_len);
+      write(client_fds[2][1], main_recv_buffer, main_recv_buffer_len);
     }
   
     if (FD_ISSET(server_sock, &readFDSet)) {
