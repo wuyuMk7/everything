@@ -1,0 +1,5 @@
+fileManager/FileSystem.cc
+fileManager/FileSystem.h
+*.so
+*.o
+content-search
