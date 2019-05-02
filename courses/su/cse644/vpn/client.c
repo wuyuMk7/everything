@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
@@ -15,22 +16,31 @@ char* extern_target_mask = "255.255.255.0";
 
 int setupTCPClient(const char *host, int port) 
 {
-  struct sockaddr_in server_addr;
-  struct hostent *hp = gethostbyname(host);
   int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  char port_str[6] = {'\0'};
 
-  if (hp == NULL) {
-    printf("Cannot retrieve IP address using the hostname %s\n", host);
-    exit(0);
+  struct addrinfo hints, *result;
+  bzero(&hints, sizeof(struct addrinfo));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_CANONNAME;
+
+  sprintf(port_str, "%d", port);
+
+  int error = getaddrinfo(host, port_str, &hints, &result);
+  if (error) {
+    fprintf(stderr, "Error from getaddrinfo: %s\n", gai_strerror(error));
+    close(sockfd);
+    exit(1);
   }
-  
-  memset(&server_addr, '\0', sizeof(server_addr));
-  memcpy(&(server_addr.sin_addr.s_addr), hp->h_addr, hp->h_length);
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_port = htons(port);
 
-  connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
+  if(connect(sockfd, result->ai_addr, result->ai_addrlen) < 0) {
+    perror("Connect error");
+    close(sockfd);
+    exit(1);
+  };
 
+  freeaddrinfo(result);
   return sockfd;
 }
 
