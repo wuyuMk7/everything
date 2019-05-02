@@ -41,6 +41,12 @@ int setupTCPServer()
   server.sin_addr.s_addr = INADDR_ANY; 
   server.sin_port = htons(SERVER_PORT);
 
+  int enable = 1;
+  if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+    perror("Setsockopt error");
+    exit(1);
+}
+
   if ((err = bind(sockfd, (struct sockaddr*)&server, sizeof(server))) < 0) {
     perror("Bind error");
     exit(-1);
