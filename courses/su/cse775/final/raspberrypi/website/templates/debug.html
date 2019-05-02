@@ -1,0 +1,151 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  Runtime Debugger
+{% endblock %}
+
+{% block content %}
+  <div class="ui grid">
+    <div class="row" style="margin-bottom: 2em;">
+      <div class="two wide column"></div>
+      <div class="">
+        <h1 class="ui aligned header">Sitting Logger Management Portal</h1> 
+      </div>
+      <div class="two wide column"></div>
+    </div>
+    <div class="row">
+      <div class="two wide column"></div>
+      <div class="twelve wide column">
+        <div class="row">
+	  <h2 class="ui header">Runtime debugger</h3>
+	</div>
+	<div class="row" style="margin: 2em auto;">
+	  <div class="ui warning message">
+	    <p>Runtime debugger will collect values in about 10s from the sensor. </p>
+	    <p>Please observe if the value has increased when you put heavy objects on sensors.</p>
+	    
+	  </div>
+	</div>
+        <div class="row">
+	  <button class="ui button left floated" id="button-start"> Start Debugging </button>
+	  <a class="ui button right floated" href="{{ url_for('status') }}"> Go Back To Device Information Page </a>
+	</div>
+	<div class="row" style="margin-top:6em;">
+	  <p style="text-indent:0.2em;"> Time consumed: <span id="time-consumed">0</span>s</p>
+	</div>
+	<div class="row" style="margin-top:2em;">
+	  <div class="ui segment form">
+	    <h3>Data from Force Sensitive Resistor (FSR)</h3>
+	    <div class="field">
+	      <textarea id="fsr"></textarea>
+	    </div>
+	  </div>
+	</div>
+	<div class="row" style="margin-top: 2em;">
+	  <div class="ui segment form">
+	    <h3>Data from Load Cells</h3>
+	    <div class="field">
+	      <textarea id="loadcell"></textarea>
+	    </div>
+	  </div>
+	</div>
+      </div>
+      <div class="two wide column"></div>
+    </div>
+  </div>
+
+  <div class="ui basic modal">
+    <div class="ui icon header">
+      Debugger failed to fetch data
+    </div>
+    <div class="content" style="text-align:center;">
+      <p> 
+        Connection timeout. No response from server.
+        Current debugging has been cancelled. 
+        You can start a new debugging. 
+      </p>
+    </div>
+    <div class="actions">
+      <div class="ui red basic cancel inverted button">
+        <i class="checkmark icon"></i>
+	OK
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+  $(function(){
+    var running = false;
+    var timeConsumed = 0;
+    var timeInterval;
+
+    $('.message .close').on('click', function() {
+      $(this).closest('.message').transition('fade');
+    });
+
+    setInterval(function(){
+      if (running == true && timeConsumed >= 60) {
+        $('.ui.basic.modal').modal('show');
+        timeConsumed = 0;
+        running = false;
+        clearInterval(timeInterval);
+	$('#time-consumed').text(timeConsumed);
+        $('#button-start').prop('disabled', false);
+      }
+    }, 5000);
+
+    var socket = io.connect('http://' + document.domain + ':' + location.port + '/debug');
+    socket.on('connect response', function(msg) {
+      console.log('Connected');
+    });
+
+    socket.on('debug data', function(msg) {
+      //console.log(msg);
+      var fsrVal = $('#fsr').val();
+      var loadcellVal = $('#loadcell').val();
+      var data = msg.data;
+      for (var i = 0;i < data.length; ++i) {
+	//console.log(data[i]);
+        fsrVal = fsrVal + "Value: " + data[i]['fsr'] + "\n";
+        loadcellVal = loadcellVal + "Value: " + data[i]['loadcell'] + "\n";
+      }
+      $('#fsr').val(fsrVal);
+      $('#loadcell').val(loadcellVal);
+    });
+
+    socket.on('debug finish', function(msg) {
+      timeConsumed = 0;
+      clearInterval(timeInterval);
+      running = false;
+      $('#button-start').prop('disabled', false);
+      $('#time-consumed').text(timeConsumed);
+      console.log('Debug Finished.');
+      //console.log(msg);
+      var fsrVal = $('#fsr').val();
+      var loadcellVal = $('#loadcell').val();
+      fsrVal = fsrVal + "Debug finished. \n";
+      loadcellVal = loadcellVal + "Debug finished. \n";
+      $('#fsr').val(fsrVal);
+      $('#loadcell').val(loadcellVal);
+    });
+
+    $('#button-start').click(function() {
+      if(running == false) {
+        running = true; 
+        console.log('Debug Started.');
+        socket.emit('start', { 'data': 'start debug' });
+	$(this).prop('disabled', true);
+	$('#fsr').val('Collecting data...\n');
+	$('#loadcell').val('Collecting data...\n');
+
+	timeInterval = setInterval(function(){
+	  timeConsumed ++; 
+	  $('#time-consumed').text(timeConsumed);
+	  //console.log(timeConsumed);
+	}, 1000) ;
+      }
+    });
+  });
+  </script>
+{% endblock %}
+

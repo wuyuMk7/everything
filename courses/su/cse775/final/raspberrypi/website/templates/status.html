@@ -1,0 +1,74 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  Device Information
+{% endblock %}
+
+{% block content %}
+  <div class="ui grid">
+    <div class="row" style="margin-bottom: 2em;">
+      <div class="two wide column"></div>
+      <div class="">
+        <h1 class="ui aligned header">Sitting Logger Management Portal</h1> 
+      </div>
+      <div class="two wide column"></div>
+    </div>
+    <div class="row">
+      <div class="two wide column"></div>
+      <div class="three wide column">
+        <div class="ui secondary vertical pointing menu row" style="margin-bottom: 2em;">
+          <a class="active item" href="{{ url_for('status') }}"> Device Information </a>
+          <a class="item" href="{{ url_for('account') }}"> Account </a>
+        </div>
+        <br/>
+        <div class="row" style="text-align:center">
+          <h4> Current User: {{ username }} </h4>
+	  <form action="/signout" method="POST">
+            <button class="ui submit button" type="submit"> Sign Out </button>
+          </form>
+        </div>
+      </div>
+      <div class="nine wide column" style="padding:0 1.5em;">
+        <div class="ui segment">
+	  <div class="row">
+	    <h3 class="ui header"> Network Information </h3>
+	    <div class="ui divider"></div>
+	  </div>
+	  {% for netcard in data['netcards'] %}
+	  <div class="">
+	    <h5 class="">NIC: {{ netcard['name'] }}</h5>
+	    <div>
+	      <div class="" style="font-weight:bold;">IPv4: </div>
+	      <div class="" style="text-indent:1em;">Address: &nbsp; {{ netcard['ipv4']['address'] }}</div>
+	      <div class="" style="text-indent:1em;">Netmask: &nbsp; {{ netcard['ipv4']['netmask'] }}</div>
+	    </div>
+	    <div>
+	      <div class="" style="font-weight:bold;">IPv6: </div>
+	      <div class="" style="text-indent:1em;">Address: &nbsp; {{ netcard['ipv6']['address'] }}</div>
+	      <div class="" style="text-indent:1em;">Netmask: &nbsp; {{ netcard['ipv6']['netmask'] }}</div>
+	    </div>
+	    <div>
+	      <div class=""><span style="font-weight:bold;">MAC address: &nbsp;</span> {{ netcard['mac'] }}</div>
+	    </div>
+	    <div class="ui divider"></div>
+	  </div>
+	  {% endfor %}
+        </div>
+	<div class="ui segment">
+	  <div class="row">
+	    <h3 class="ui header"> Sensor Debugger </h3>
+	    <div class="ui divider"></div>
+	  </div>
+	  <div class="">
+	    <a class="ui button" href="{{ url_for('debug') }}">
+	      Open Runtime Debugger 
+	    </a>
+	  </div>
+	</div>
+      </div>
+      <div class="two wide column"></div>
+    </div>
+  </div>
+
+{% endblock %}
+

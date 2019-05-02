@@ -1,0 +1,167 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  Account management
+{% endblock %}
+
+{% block content %}
+  <div class="ui grid">
+    <div class="row" style="margin-bottom: 2em;">
+      <div class="two wide column"></div>
+      <div class="">
+        <h1 class="ui aligned header">Sitting Logger Management Portal</h1> 
+      </div>
+      <div class="two wide column"></div>
+    </div>
+    <div class="row">
+      <div class="two wide column"></div>
+      <div class="three wide column">
+        <div class="ui secondary vertical pointing menu row" style="margin-bottom: 2em;">
+          <a class="item" href="{{ url_for('status') }}"> Device Information </a>
+          <a class="active item" href="{{ url_for('account') }}"> Account </a>
+        </div>
+        <br/>
+        <div class="row" style="text-align:center">
+          <h4> Current User: {{ username }} </h4>
+	  <form action="/signout" method="POST">
+            <button class="ui submit button" type="submit"> Sign Out </button>
+          </form>
+        </div>
+      </div>
+      <div class="nine wide column" style="padding:0 1.5em;">
+        <div class="row">
+	  {% if messages['pwd'] %}
+	  <div class="ui negative message">
+            <i class="close icon"></i>
+            <div class="header">
+              Password Modification Failed.
+            </div>
+            <p>{{ messages['pwd'] }}</p>
+          </div>
+          {% endif %}
+	  {% if messages['email'] %}
+	  <div class="ui negative message">
+            <i class="close icon"></i>
+            <div class="header">
+              Email Modification Failed.
+            </div>
+            <p>{{ messages['email'] }}</p>
+          </div>
+          {% endif %}
+	  {% if messages['key'] %}
+	  <div class="ui negative message">
+            <i class="close icon"></i>
+            <div class="header">
+              Service Key Modification Failed.
+            </div>
+            <p>{{ messages['key'] }}</p>
+          </div>
+          {% endif %}
+	  {% if messages['success'] %}
+	  <div class="ui success message">
+            <i class="close icon"></i>
+            <div class="header">
+              {{ messages['success'] }}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        <div class="ui segment">
+	  <div class="row">
+	    <h3 class="ui header"> Change your password </h3>
+	    <div class="ui divider"></div>
+	  </div>
+ 	  <div id="pwd-form">
+           <form class="ui form" action="{{ url_for('do_update_credential') }}" method="POST">
+             <div class="field">
+               <label>Current password</label>
+               <input type="password" name="curpwd" placeholder="Enter your current password">
+             </div>
+             <div class="field">
+               <label>New password</label>
+               <input type="password" name="newpwd" placeholder="Enter the new password">
+             </div>
+             <div class="field">
+               <label>Confirm new password</label>
+               <input type="password" name="retypepwd" placeholder="Confirm the new password">
+             </div>
+             <button class="ui button" type="submit">Submit</button>
+           </form>
+          </div>
+        </div>
+	<div class="ui segment">
+	  <div class="row">
+	    <h3 class="ui header"> Email </h3>
+	    <div class="ui divider">
+	    </div>
+	  </div>
+	  <div class="ui form">
+            <form id="form-email" action=" {{ url_for('do_update_email') }}" method="POST"> 
+	      <div class="field">
+	        <input type="text" name="email" id="email" placeholder="Enter your email address" value="{{ data.email }}" disabled>
+	      </div>
+	      <div class="field">
+	        <a class="ui button" id="button-email">Update email</a>
+	      </div>
+	    </form> 
+	  </div>
+	</div>
+	<div class="ui segment">
+	  <div class="row">
+	    <h3 class="ui header"> Service key </h3>
+	    <div class="ui divider">
+	    </div>
+	  </div>
+	  <div class="ui form">
+            <form id="form-service-key" action=" {{ url_for('do_update_service_key') }}" method="POST"> 
+	      <div class="field">
+		<textarea name="servicekey" id="servicekey" disabled>{{ data.key }}</textarea>
+	      </div>
+	      <div class="field">
+	        <a class="ui button" id="button-key">Update service key</a>
+	      </div>
+	    </form> 
+	  </div>
+	</div>
+      </div>
+      <div class="two wide column"></div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+  $(function(){
+    var emailForm = 'read';
+    var keyForm = 'read';
+
+    $('#button-key').click(function(){
+      if (keyForm == 'read') {
+	keyForm = 'write';
+        $(this).text('Save new service key');
+	$(this).addClass('primary');
+	$('#servicekey').prop('disabled', false);
+      } else {
+        $('#form-service-key').submit();
+      }
+    });
+    
+    $('#button-email').click(function(){
+      if (emailForm == 'read') {
+	emailForm = 'write';
+        $(this).text('Save new email');
+	$(this).addClass('primary');
+	$('#email').prop('disabled', false);
+      } else {
+        $('#form-email').submit();
+      }
+    });
+
+    $('.message .close')
+    .on('click', function() {
+      $(this)
+        .closest('.message')
+        .transition('fade');
+    });
+  });
+  </script>
+{% endblock %}
+
