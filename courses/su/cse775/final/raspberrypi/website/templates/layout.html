@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{% block title %}{% endblock %} - Sitting Time Logger Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.slim.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <div style="padding-top: 3.5em;">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </body>
+</html>

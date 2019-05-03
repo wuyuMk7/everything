@@ -1,0 +1,6 @@
+*.o
+*.bak
+client
+server
+single_server
+

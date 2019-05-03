@@ -1,0 +1,87 @@
+- Search file: ../FileSystem/TestGetLine/test.cpp
+Line 3: #include <fstream>
+Line 4: #include <iostream>
+Line 5: #include <string>
+
+- Search file: ../FileSystem/TestFileSystem/FileSystemTest.cpp
+Line 16: #include <iostream>
+Line 17: #include <fstream>
+Line 18: #include <string>
+Line 19: #include <algorithm>
+Line 20: #include "../FileSystemDemo/FileSystem.h"
+Line 21: #include "UnitTest.h"
+
+- Search file: ../FileManager/dllmain.cpp
+Line 3: #include "stdafx.h"
+Line 4: #include "resource.h"
+Line 5: #include "FileManager_i.h"
+Line 6: #include "dllmain.h"
+Line 7: #include "xdlldata.h"
+
+- Search file: ../ContentFinder/ContentFinder.cpp
+Line 4: #include "../FileManager/FileManager_i.h"
+Line 5: #include "../TextSearch/TextSearch_i.h"
+Line 7: #include <iostream>
+Line 8: #include <string>
+Line 9: #include <atlbase.h>
+Line 10: #include <atlstr.h>
+Line 11: #include <atlsafe.h>
+
+- Search file: ../TextSearch/TextSearch.cpp
+Line 4: #include "stdafx.h"
+Line 5: #include "resource.h"
+Line 6: #include "TextSearch_i.h"
+Line 7: #include "dllmain.h"
+Line 8: #include "xdlldata.h"
+Line 9: #include "../FileManager/FileManager_i.h"
+Line 11: #include <iostream>
+Line 12: #include <atlsafe.h>
+Line 13: #include <fstream>
+Line 14: #include <string>
+Line 15: #include <regex>
+Line 103: #include "stdafx.h"
+Line 104: #include "TextSearch.h"
+
+- Search file: ../FileManager/FileManager.cpp
+Line 4: #include "stdafx.h"
+Line 5: #include "resource.h"
+Line 6: #include "FileManager_i.h"
+Line 7: #include "dllmain.h"
+Line 8: #include "xdlldata.h"
+Line 10: #include "../FileSystem/FileSystemDemo/FileSystem.h"
+Line 12: #include <iostream>
+Line 13: #include <queue>
+Line 14: #include <unordered_set>
+Line 102: #include "stdafx.h"
+Line 103: #include "FileManager.h"
+
+- Search file: ../FileManager/stdafx.cpp
+Line 5: #include "stdafx.h"
+
+- Search file: ../TextSearch/dllmain.cpp
+Line 3: #include "stdafx.h"
+Line 4: #include "resource.h"
+Line 5: #include "TextSearch_i.h"
+Line 6: #include "dllmain.h"
+Line 7: #include "xdlldata.h"
+
+- Search file: ../TextSearch/stdafx.cpp
+Line 5: #include "stdafx.h"
+
+- Search file: ../FileSystem/FileSystemDemo/FileSystem.cpp
+Line 15: #include <iostream>
+Line 16: #include <string>
+Line 17: #include <sstream>
+Line 18: #include <iomanip>
+Line 19: #include <utility>
+Line 20: #include <cctype>
+Line 21: #include <locale>
+Line 22: #include "FileSystem.h"
+
+- Search file: ../FileSystem/TestFileSystem/UnitTest.cpp
+Line 13: #include "UnitTest.h"
+Line 14: #include <string>
+Line 15: #include <iostream>
+
+
+

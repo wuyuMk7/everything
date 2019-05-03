@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  Log In
+{% endblock %}
+
+{% block content %}
+  <div class="ui centered grid three column">
+    <div class="one column row">
+    <h1 class="ui center aligned header">Log in</h1> 
+    </div>
+    <div class="row">
+      <form class="ui form column" action="/login" method="post">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" name="username" placeholder="Username">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="Password">
+        </div>
+        <br/>
+        <div class="ui centered grid three column">
+          <div class="column">
+            <button class="ui button" type="submit">Login</button>
+          </div>
+        </div>
+      </form>  
+    </div>
+    {% if errors %}
+    <div class="row">
+      <div class="ui column negative message">
+        <i class="close icon"></i>
+        <div class="header">
+          Login Failed
+	</div>
+        <p>{{ errors }}</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <script type="text/javascript">
+    $('.message .close')
+    .on('click', function() {
+      $(this)
+        .closest('.message')
+        .transition('fade')
+      ;
+    });
+  </script>
+{% endblock %}

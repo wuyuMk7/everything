@@ -1,0 +1,37 @@
+// FileManager.idl : IDL source for FileManager
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (FileManager.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	object,
+	uuid(0A7495AD-0CC0-49F7-B78A-8A8E17814ACE),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IFileManager : IDispatch{
+	[id(1)] HRESULT sendPathAndPatterns([in] BSTR path, [in] VARIANT patterns);
+	[id(2)] HRESULT getResult([out] VARIANT* result);
+};
+[
+	uuid(41B26187-87C6-4C18-AE80-B6DDD98B35BC),
+	version(1.0),
+]
+library FileManagerLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(77D13340-3683-4013-ADC1-46432E3FDA5B)		
+	]
+	coclass FileManager
+	{
+		[default] interface IFileManager;
+	};
+};
+
+import "shobjidl.idl";
