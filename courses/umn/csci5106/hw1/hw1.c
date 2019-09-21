@@ -39,28 +39,39 @@ int main(int argc, char* argv[])
   mystr_new(&even_elements_mystr, "abcdefghijklmnop", 16);
   mystr_new(&odd_result_mystr, "", 0);
 
+  mystr target_mystr = {};
+  mystr_new(&target_mystr, "acegikmo", 8);
+
   printf("- Test 1, input sequence is an empty sequence");
   printf(", output sequence is: ");
   mystr_odd(&empty_mystr, &odd_result_mystr);
   mystr_print(&odd_result_mystr);
+  if (mystr_compare(&odd_result_mystr, &empty_mystr) == 0)
+    printf(". Test 1 passed.");
   
   printf("\n- Test 2, input sequence is ");
   mystr_print(&one_char_mystr);
   printf(", output sequence is: ");
   mystr_odd(&one_char_mystr, &odd_result_mystr);
   mystr_print(&odd_result_mystr);
+  if (mystr_compare(&odd_result_mystr, &one_char_mystr) == 0)
+    printf(". Test 2 passed.");
 
   printf("\n- Test 3, input sequence is ");
   mystr_print(&odd_elements_mystr);
   printf(", output sequence is: ");
   mystr_odd(&odd_elements_mystr, &odd_result_mystr);
   mystr_print(&odd_result_mystr);
+  if (mystr_compare(&odd_result_mystr, &target_mystr) == 0)
+    printf(". Test 3 passed.");
 
   printf("\n- Test 4, input sequence is ");
   mystr_print(&even_elements_mystr);
   printf(", output sequence is: ");
   mystr_odd(&even_elements_mystr, &odd_result_mystr);
   mystr_print(&odd_result_mystr);
+  if (mystr_compare(&odd_result_mystr, &target_mystr) == 0)
+    printf(". Test 4 passed.");
 
   printf("\n");
 

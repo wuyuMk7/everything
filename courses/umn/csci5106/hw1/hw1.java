@@ -120,25 +120,29 @@ public class hw1 {
     System.out.print("- Test 1, input sequence is empty");
     System.out.print(", output sequence is: ");
     emptyObj.odd().print();
-    System.out.println();
+    if (emptyObj.odd().compare(emptyObj) == 0)
+      System.out.println(". Test 1 passed.");
 
     System.out.print("- Test 2, input sequence is ");
     oneCharObj.print();
     System.out.print(", output sequence is: ");
     oneCharObj.odd().print();
-    System.out.println();
+    if (oneCharObj.odd().compare(oneCharObj) == 0)
+      System.out.println(". Test 2 passed.");
     
     System.out.print("- Test 3, input sequence is ");
     oddCharsObj.print();
     System.out.print(", output sequence is: ");
     oddCharsObj.odd().print();
-    System.out.println();
+    if (oddCharsObj.odd().compare(new MyStr("ac13")) == 0)
+      System.out.println(". Test 3 passed.");
 
     System.out.print("- Test 4, input sequence is ");
     evenCharsObj.print();
     System.out.print(", output sequence is: ");
     evenCharsObj.odd().print();
-    System.out.println();
+    if (evenCharsObj.odd().compare(new MyStr("ac13%&")) == 0)
+      System.out.println(". Test 4 passed.");
   }
 }
 
