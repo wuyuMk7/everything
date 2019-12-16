@@ -1,0 +1,6 @@
+Run 'make' under this directory and 
+you will get executables files: hw51, hw52, and hw53.
+
+Execute './hw51' to run tests for the problem 1.
+Execute './hw52' to run tests for the problem 2.
+Execute './hw53' to run tests for the problem 3.
